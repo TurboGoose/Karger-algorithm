@@ -6,15 +6,15 @@ import java.util.List;
 import java.util.Random;
 
 public class Main implements Cloneable {
-    public static int V_NUM = 40;
+    public static int V_NUM = 20;
     public static double PROB = 0.5;
     public static int WARM_UP_RUNS = 4;
     public static int CALCULATION_RUNS = 100;
 
     public static void main(String[] args) throws IOException {
         warmUp(WARM_UP_RUNS);
-        writeResultsToFile("results.txt", runCalculationExperiment(CALCULATION_RUNS));
-//        runRandomCalculationExperiment(1000);
+//        writeResultsToFile("results.txt", runCalculationExperiment(CALCULATION_RUNS));
+        runRandomCalculationExperiment();
     }
 
     public static void writeResultsToFile(String filename, List<Long> results) throws IOException {
@@ -24,23 +24,26 @@ public class Main implements Cloneable {
         }
     }
 
-    public static void runRandomCalculationExperiment(int runs) throws FileNotFoundException {
+    public static void runRandomCalculationExperiment() throws FileNotFoundException {
+        final int NUM_GRAPHS = 1000;
         final int V_MIN = 10, V_MAX = 50;
         Random random = new Random();
         List<Integer> vertices = new ArrayList<>();
         List<Integer> edges = new ArrayList<>();
         List<Long> elapsed = new ArrayList<>();
 
-        for (int i = 0; i < runs; i++) {
-            int verts = V_MIN + random.nextInt(V_MAX - V_MIN);
-            double prob = Math.min(Math.max(random.nextDouble(), 0.4), 0.8);
-            System.out.printf("%d) V = %d, P = %f, ", i, verts, prob);
-            Graph graph = GraphFactory.generate(verts, prob);
-            long elapsedTime = findMinCut(graph);
-            System.out.printf("E = %d, MS = %d%n", graph.edges.size(), elapsedTime);
-            vertices.add(verts);
-            edges.add(graph.edges.size());
-            elapsed.add(elapsedTime);
+        int runs = NUM_GRAPHS / (V_MAX - V_MIN);
+        for (int verts = V_MIN; verts < V_MAX + 1; verts++) {
+            for (int j = 0; j < runs; j++) {
+                double prob = Math.min(Math.max(random.nextDouble(), 0.5), 0.8);
+                System.out.printf("%d) V = %d, P = %f, ", verts * runs + j, verts, prob);
+                Graph graph = GraphFactory.generate(verts, prob);
+                long elapsedTime = findMinCut(graph);
+                System.out.printf("E = %d, MS = %d%n", graph.edges.size(), elapsedTime);
+                vertices.add(verts);
+                edges.add(graph.edges.size());
+                elapsed.add(elapsedTime);
+            }
         }
 
         try (PrintWriter out = new PrintWriter("result.csv")) {
